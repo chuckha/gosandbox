@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <title>go webapp</title>
+  </head>
+  <body>
+    <div id="people">hi</div>
+    <div id="messages">
+      <ol>
+      {{range .}}
+        <li>{{.Author}}: {{.Message}}</li>
+      {{end}}
+      </ol>
+    </div>
+    <div id="message">
+      <form action="/" method="POST" name="form">
+        <input type="text" name="message"/>
+        <input type="submit" />
+      </form>
+    </div>
+  </body>
+</html>
