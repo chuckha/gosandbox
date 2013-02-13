@@ -1,8 +1,10 @@
 package main
 
 import (
+	"io"
 	"html/template"
 	"net/http"
+	"code.google.com/p/go.net/websocket"
 )
 
 type Message struct {
