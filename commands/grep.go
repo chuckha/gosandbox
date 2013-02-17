@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"flag"
 	"io"
 	"os"
 	"regexp"
 )
+
 
 func main() {
 	flag.Parse()
@@ -15,30 +17,23 @@ func main() {
 	if err != nil { panic(err) }
 
 	for _, filename := range flag.Args()[1:] {
-		matches := Search(filename, re)
-		for _, match := range matches {
-			fmt.Printf("%v: %s\n", filename, match)
-		}
+		ChunkFile(filename, re)
 	}
 }
 
-func Search(filename string, pattern *regexp.Regexp) []string {
+
+func ChunkFile(filename string, re *regexp.Regexp) {
 	file, err := os.Open(filename)
 	if err != nil { panic(err) }
 	defer file.Close()
 
-	finds := []string{}
-
-	buf := make([]byte, 1024)
-
+	reader := bufio.NewReader(file)
 	for {
-		n, err := file.Read(buf)
-		if err != nil && err != io.EOF { panic(err) }
-		if n == 0 { break }
-		for _, v := range pattern.FindAll(buf, -1) {
-			finds = append(finds, string(v))
+		line, e := reader.ReadString('\n')
+		if e == io.EOF { break }
+		if e != nil { panic(e) }
+		for _, v := range re.FindAllString(line, -1) {
+			fmt.Println(v)
 		}
 	}
-
-	return finds
 }
