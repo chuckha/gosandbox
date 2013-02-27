@@ -1,3 +1,4 @@
 *.swp
 commands/wordfiles
 commands/books
+.DS_Store

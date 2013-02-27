@@ -1,14 +1,15 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"flag"
-	"io"
 	"os"
 	"regexp"
+	"sync"
 )
 
+
+var wg sync.WaitGroup
 
 func main() {
 	flag.Parse()
@@ -16,24 +17,35 @@ func main() {
 	re, err := regexp.Compile(pattern)
 	if err != nil { panic(err) }
 
+	results := make(chan string)
+
 	for _, filename := range flag.Args()[1:] {
-		ChunkFile(filename, re)
+		ChunkFile(filename, re, results)
 	}
+
+	for v := range results {
+		fmt.Println(v)
+	}
+
 }
 
 
-func ChunkFile(filename string, re *regexp.Regexp) {
+func ChunkFile(filename string, re *regexp.Regexp, founds chan string) {
 	file, err := os.Open(filename)
 	if err != nil { panic(err) }
 	defer file.Close()
 
-	reader := bufio.NewReader(file)
+	chunks := make([]byte, 1024)
 	for {
-		line, e := reader.ReadString('\n')
-		if e == io.EOF { break }
-		if e != nil { panic(e) }
-		for _, v := range re.FindAllString(line, -1) {
-			fmt.Println(v)
-		}
+		numBytes, err := file.Read(chunks)
+		if numBytes == 0 { break }
+		if err != nil { panic(err) }
+		wg.Add(1)
+		go func(chunks []byte) {
+			for _, v := range re.FindAll(chunks, -1) {
+				founds <- string(v)
+			}
+			wg.Done()
+		}(chunks)
 	}
 }
